@@ -193,7 +193,7 @@ class PiecewiseShared(nn.Module):
         wid_max_flat = wid_max.view(-1)
         wrange = wid_min_flat.unsqueeze(-1) + \
             torch.arange(self._n, device=device).view(-1)
-        # print("wrange.shape",wrange.shape)
+        #print("wrange.shape",wrange.shape)
         # We only choose n interpolation points (weights) so
         # we divide by n instead of (segments*n...) therefore
         # the column index increases
@@ -201,6 +201,7 @@ class PiecewiseShared(nn.Module):
             wrange.shape[0]*wrange.shape[1])//self._n) % (self.in_channels)
         wrange = wrange.flatten()
         
+        # [channel index, weight index]
         w = self.w[windex, wrange]
         
         # Now
@@ -209,7 +210,9 @@ class PiecewiseShared(nn.Module):
 
         # TODO: Not totally convinced this is right.  Needs a test
         w = w.view(-1, wid_min.shape[-1], self.in_channels, self._n)
-        #w = w.permute(1, 2, 0, 3)
+        #w = w.view(wid_min.shape[-1],-1, self.in_channels, self._n)
+
+        #w = w.permute(1, 0, 2, 3)
         #print('w_final.shape', w.shape)
 
         # get the range of x in this segment

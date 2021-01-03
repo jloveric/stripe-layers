@@ -62,7 +62,9 @@ class Net(LightningModule):
 
         self.layer1 = StripePolynomial2d(n, in_channels=3, width=32, height=32,
                                          segments=segments, length=2.0, weight_magnitude=1.0, periodicity=None, rotations=2)
-        self.layer2 = StripePolynomial2d(n, in_channels=3, width=32, height=32,
+        self.layer2 = StripePolynomial2d(n, in_channels=3, width=16, height=16,
+                                         segments=segments, length=2.0, weight_magnitude=1.0, periodicity=None, rotations=2)
+        self.layer3 = StripePolynomial2d(n, in_channels=3, width=8, height=8,
                                          segments=segments, length=2.0, weight_magnitude=1.0, periodicity=None, rotations=2)
 
         #self.pool = nn.MaxPool2d(2, 2)
@@ -70,20 +72,22 @@ class Net(LightningModule):
         self.convolution1 = torch.nn.Conv2d(
             in_channels=3, out_channels=1, kernel_size=1)
 
-        self.fc1 = nn.Linear(16 * 16, 100)
+        self.fc1 = nn.Linear(192, 100)
 
     def forward(self, x):
 
         ans = self.layer1(x)
-        ans = self.layer2(ans)
-        ans = ans.reshape(-1, x.shape[1], x.shape[2], x.shape[3])
-
+        #print('ans1.shape', ans.shape)
         # do some average pooling
         ans = self.pool(ans)
-
-        ans = self.convolution1(ans)
+        #print('ansb.shape', ans.shape)
+        ans = self.layer2(ans)
+        #print('ans2.shape', ans.shape)
+        ans = self.pool(ans)
+        ans = self.layer3(ans)
         #print('ans.shape', ans.shape)
         ans = ans.flatten(start_dim=1)
+        #print('ans.shape',ans.shape)
         ans = self.fc1(ans)
 
         return ans

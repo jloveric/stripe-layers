@@ -17,11 +17,15 @@ class StripePolynomial2d(torch.nn.Module):
         self.max_dim = max(width, height)
         self.rotations = rotations
 
+        # Create and center the coordinates
+        # TODO: These don't have the ranges I thought so they will need to be fixed.
         xv, yv = torch.meshgrid(
             [torch.arange(width), torch.arange(height)])
         xv = xv.to(device=device)
         yv = yv.to(device=device)
         #print('yv.device', yv.device)
+        
+        # Coordinage values range from
         if rotations == 2:
             self.positions = [xv, yv, (xv-yv)/2.0, (xv+yv)/2.0]
         elif rotations == 1:
@@ -58,4 +62,4 @@ class StripePolynomial2d(torch.nn.Module):
             else:
                 accum = accum + dl
 
-        return accum
+        return accum.reshape(*x.shape)
