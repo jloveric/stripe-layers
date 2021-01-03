@@ -48,15 +48,17 @@ class BasisShared:
         mat = torch.stack(mat)
 
         #print('mat.shape', mat.shape, 'w.shape', w.shape)
+        #print('mat.device', mat.device, 'w.device', w.device)
         assemble = torch.einsum("ijkl,jlki->jkl", mat, w)
         #print('shape.assemble', assemble.shape)
-        
+
         return assemble
 
 
 class LagrangePolyShared(BasisShared):
     def __init__(self, n: int, length: float = 2.0, **kwargs):
         super().__init__(n, LagrangeBasis(n, length=length), **kwargs)
+
 
 '''
 class PiecewiseExpandShared:
@@ -142,8 +144,9 @@ class PiecewiseExpandShared:
         return eta*2-1
 '''
 
+
 class PiecewiseShared(nn.Module):
-    def __init__(self, n, in_channels, segments, length: int = 2.0, weight_magnitude=1.0, poly=None, periodicity=None, **kwargs):
+    def __init__(self, n: int, in_channels: int, segments: int, length: int = 2.0, weight_magnitude=1.0, poly=None, periodicity=None, device='cuda', **kwargs):
         super().__init__()
         self._poly = poly(n)
         self._n = n
@@ -190,22 +193,22 @@ class PiecewiseShared(nn.Module):
         wid_max_flat = wid_max.view(-1)
         wrange = wid_min_flat.unsqueeze(-1) + \
             torch.arange(self._n, device=device).view(-1)
-        #print("wrange.shape",wrange.shape)
-        # We only choose n interpolation points (weights) so 
+        # print("wrange.shape",wrange.shape)
+        # We only choose n interpolation points (weights) so
         # we divide by n instead of (segments*n...) therefore
         # the column index increases
         windex = (torch.arange(
             wrange.shape[0]*wrange.shape[1])//self._n) % (self.in_channels)
         wrange = wrange.flatten()
-
+        
         w = self.w[windex, wrange]
-
-        #Now 
+        
+        # Now
         #w = w.view(self.out_features, -1, self.in_features, self._n)
         #w = w.permute(1, 2, 0, 3)
 
         # TODO: Not totally convinced this is right.  Needs a test
-        w = w.view(-1,wid_min.shape[-1], self.in_channels, self._n)
+        w = w.view(-1, wid_min.shape[-1], self.in_channels, self._n)
         #w = w.permute(1, 2, 0, 3)
         #print('w_final.shape', w.shape)
 
@@ -232,6 +235,6 @@ class PiecewiseShared(nn.Module):
 
 
 class PiecewisePolynomialShared(PiecewiseShared):
-    def __init__(self, n, in_channels, segments, length=2.0, weight_magnitude=1.0, periodicity: float = None, **kwargs):
+    def __init__(self, n, in_channels, segments, length=2.0, weight_magnitude=1.0, periodicity: float = None, device='cuda', ** kwargs):
         super().__init__(n, in_channels, segments,
-                         length, weight_magnitude, poly=LagrangePolyShared, periodicity=periodicity)
+                         length, weight_magnitude, poly=LagrangePolyShared, periodicity=periodicity, device=device)
