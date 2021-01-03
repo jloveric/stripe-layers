@@ -59,8 +59,15 @@ class Net(LightningModule):
         segments = cfg.segments
         self._topk_metric = AccuracyTopK(top_k=5)
 
-        self.layer1 = PiecewisePolynomialShared(
+        self.layer1x = PiecewisePolynomialShared(
             n, in_channels=3, segments=segments, length=2.0, weight_magnitude=1.0, periodicity=None)
+        self.layer1y = PiecewisePolynomialShared(
+            n, in_channels=3, segments=segments, length=2.0, weight_magnitude=1.0, periodicity=None)
+        self.layer1xy = PiecewisePolynomialShared(
+            n, in_channels=3, segments=segments, length=2.0, weight_magnitude=1.0, periodicity=None)
+        self.layer1yx = PiecewisePolynomialShared(
+            n, in_channels=3, segments=segments, length=2.0, weight_magnitude=1.0, periodicity=None)
+
         #self.pool = nn.MaxPool2d(2, 2)
         self.pool = nn.AvgPool2d(2, 2)
         self.convolution1 = torch.nn.Conv2d(
@@ -80,17 +87,27 @@ class Net(LightningModule):
         # We want the result between -1 and 1
         dx = position_encode(x, self.xv)/16.0 - 1.0
         dy = position_encode(x, self.yv)/16.0 - 1.0
+        
+        dxy = position_encode(x, self.xv-self.yv)/32.0 - 1.0
+        dyx = position_encode(x, self.xv+self.yv)/32.0 - 1.0
+        
         #position_encode(x, px-py)
         # position_encode(x,px+py)
 
         # Keep the batch and channels
         dx = dx.flatten(start_dim=2)
-        ans_dx = self.layer1(dx)
+        ans_dx = self.layer1x(dx)
 
         dy = dy.flatten(start_dim=2)
-        ans_dy = self.layer1(dy)
+        ans_dy = self.layer1y(dy)
 
-        ans = ans_dx+ans_dy
+        dxy = dxy.flatten(start_dim=2)
+        ans_dxy = self.layer1xy(dxy)
+
+        dyx = dyx.flatten(start_dim=2)
+        ans_dyx = self.layer1yx(dyx)
+
+        ans = ans_dx+ans_dy+ans_dxy+ans_dyx
         ans = ans.reshape(-1, x.shape[1], x.shape[2], x.shape[3])
 
         # do some average pooling
