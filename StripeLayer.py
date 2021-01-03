@@ -23,8 +23,7 @@ class StripePolynomial2d(torch.nn.Module):
         yv = yv.to(device=device)
         #print('yv.device', yv.device)
         if rotations == 2:
-            self.positions = [
-                [xv, yv, (xv-yv)/2.0, (xv+yv)/2.0]]
+            self.positions = [xv, yv, (xv-yv)/2.0, (xv+yv)/2.0]
         elif rotations == 1:
             self.positions = [xv, yv]
         else:
