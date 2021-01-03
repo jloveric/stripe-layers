@@ -1,6 +1,6 @@
 max_epochs: 1
 gpus: 1 
-n: 5
+n: 3
 batch_size: 128
 segments: 10
 layer_type: piecewise 
