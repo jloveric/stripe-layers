@@ -47,12 +47,11 @@ class BasisShared:
             mat.append(basis_j)
         mat = torch.stack(mat)
 
-        assemble = torch.einsum("ijk,jkli->jlk", mat, w)
-
-        # Compute sum and product at output
-        out_sum = torch.sum(assemble, dim=2)
-
-        return out_sum
+        #print('mat.shape', mat.shape, 'w.shape', w.shape)
+        assemble = torch.einsum("ijkl,jlki->jkl", mat, w)
+        #print('shape.assemble', assemble.shape)
+        
+        return assemble
 
 
 class LagrangePolyShared(BasisShared):
@@ -191,15 +190,24 @@ class PiecewiseShared(nn.Module):
         wid_max_flat = wid_max.view(-1)
         wrange = wid_min_flat.unsqueeze(-1) + \
             torch.arange(self._n, device=device).view(-1)
-
+        #print("wrange.shape",wrange.shape)
+        # We only choose n interpolation points (weights) so 
+        # we divide by n instead of (segments*n...) therefore
+        # the column index increases
         windex = (torch.arange(
             wrange.shape[0]*wrange.shape[1])//self._n) % (self.in_channels)
         wrange = wrange.flatten()
 
         w = self.w[windex, wrange]
 
+        #Now 
         #w = w.view(self.out_features, -1, self.in_features, self._n)
         #w = w.permute(1, 2, 0, 3)
+
+        # TODO: Not totally convinced this is right.  Needs a test
+        w = w.view(-1,wid_min.shape[-1], self.in_channels, self._n)
+        #w = w.permute(1, 2, 0, 3)
+        #print('w_final.shape', w.shape)
 
         # get the range of x in this segment
         x_min = self._eta(id_min)
@@ -208,8 +216,8 @@ class PiecewiseShared(nn.Module):
         # rescale to -1 to +1
         x_in = self._length*((x-x_min)/(x_max-x_min))-self._half
 
-        print('x_in.shape', x_in.shape)
-        print('w.shape', w.shape)
+        #print('x_in.shape', x_in.shape)
+        #print('w.shape', w.shape)
 
         result = self._poly.interpolate(x_in, w)
         return result

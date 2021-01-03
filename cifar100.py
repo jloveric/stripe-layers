@@ -61,30 +61,45 @@ class Net(LightningModule):
 
         self.layer1 = PiecewisePolynomialShared(
             n, in_channels=3, segments=segments, length=2.0, weight_magnitude=1.0, periodicity=None)
+        #self.pool = nn.MaxPool2d(2, 2)
+        self.pool = nn.AvgPool2d(2, 2)
+        self.convolution1 = torch.nn.Conv2d(
+            in_channels=3, out_channels=1, kernel_size=1)
+
+        self.fc1 = nn.Linear(16 * 16, 100)
+
+        xv, yv = torch.meshgrid(
+            [torch.arange(32), torch.arange(32)])
+        self.xv = xv.to(device='cuda')
+        self.yv = yv.to(device='cuda')
 
     def forward(self, x):
-        xv, yv = torch.meshgrid([torch.arange(x.shape[0]), torch.arange(x.shape[1])])
-        dx = position_encode(x, xv)
-        dy = position_encode(x, yv)
+
+        # print('torch.max',torch.max(xv))
+
+        # We want the result between -1 and 1
+        dx = position_encode(x, self.xv)/16.0 - 1.0
+        dy = position_encode(x, self.yv)/16.0 - 1.0
         #position_encode(x, px-py)
         # position_encode(x,px+py)
 
-        ans = self.layer1(dx)
+        # Keep the batch and channels
+        dx = dx.flatten(start_dim=2)
+        ans_dx = self.layer1(dx)
 
-        '''
-        if self._nonlinearity is True:
-            x = self.pool(F.relu(self.conv1(x)))
-            x = self.pool(F.relu(self.conv2(x)))
-            x = self.avg_pool(x)
-            x = self.flatten(x)
-            x = self.fc1(x)
-        else:
-            x = self.pool(self.conv1(x))
-            x = self.pool(self.conv2(x))
-            x = self.avg_pool(x)
-            x = self.flatten(x)
-            x = self.fc1(x)
-        '''
+        dy = dy.flatten(start_dim=2)
+        ans_dy = self.layer1(dy)
+
+        ans = ans_dx+ans_dy
+        ans = ans.reshape(-1, x.shape[1], x.shape[2], x.shape[3])
+
+        # do some average pooling
+        ans = self.pool(ans)
+
+        ans = self.convolution1(ans)
+        #print('ans.shape', ans.shape)
+        ans = ans.flatten(start_dim=1)
+        ans = self.fc1(ans)
 
         return ans
 
