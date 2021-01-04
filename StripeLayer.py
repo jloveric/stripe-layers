@@ -49,7 +49,7 @@ class StripePolynomial2d(torch.nn.Module):
             # and are centered at (0,0)
             r1 = ((r1-r1_min)/dr1-0.5)*self.max_dim
             r2 = ((r2-r2_min)/dr2-0.5)*self.max_dim
-            print('r1_max', dr1,'r2_max', dr2)
+            print('r1_max', dr1, 'r2_max', dr2)
             line_list.append(r1)
             line_list.append(r2)
 
@@ -63,7 +63,7 @@ class StripePolynomial2d(torch.nn.Module):
     def forward(self, x):
 
         accum = None
-        for i in range(self.rotations):
+        for i in range(len(self.positions)):
             pos = self.positions[i]
 
             # TODO this should be 0.5*self.max_dim
@@ -75,5 +75,6 @@ class StripePolynomial2d(torch.nn.Module):
                 accum = dl
             else:
                 accum = accum + dl
+        accum = accum/(len(self.positions))
 
         return accum.reshape(*x.shape)
