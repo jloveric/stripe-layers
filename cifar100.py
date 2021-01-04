@@ -61,11 +61,11 @@ class Net(LightningModule):
         self._topk_metric = AccuracyTopK(top_k=5)
 
         self.layer1 = StripePolynomial2d(n, in_channels=3, width=32, height=32,
-                                         segments=segments, length=2.0, weight_magnitude=1.0, periodicity=None, rotations=2)
+                                         segments=segments, length=2.0, weight_magnitude=1.0, periodicity=cfg.periodicity, rotations=cfg.rotations)
         self.layer2 = StripePolynomial2d(n, in_channels=3, width=16, height=16,
-                                         segments=segments, length=2.0, weight_magnitude=1.0, periodicity=None, rotations=2)
+                                         segments=segments, length=2.0, weight_magnitude=1.0, periodicity=cfg.periodicity, rotations=cfg.rotations)
         self.layer3 = StripePolynomial2d(n, in_channels=3, width=8, height=8,
-                                         segments=segments, length=2.0, weight_magnitude=1.0, periodicity=None, rotations=2)
+                                         segments=segments, length=2.0, weight_magnitude=1.0, periodicity=cfg.periodicity, rotations=cfg.rotations)
 
         #self.pool = nn.MaxPool2d(2, 2)
         self.pool = nn.AvgPool2d(2, 2)
@@ -87,7 +87,7 @@ class Net(LightningModule):
         ans = self.layer3(ans)
         #print('ans.shape', ans.shape)
         ans = ans.flatten(start_dim=1)
-        #print('ans.shape',ans.shape)
+        # print('ans.shape',ans.shape)
         ans = self.fc1(ans)
 
         return ans
