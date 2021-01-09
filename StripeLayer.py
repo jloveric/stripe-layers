@@ -9,12 +9,15 @@ class StripePolynomial2d(torch.nn.Module):
     Piecewise continuous polynomial.
     """
 
-    def __init__(self, n: int, in_channels: int, width: int, height: int, segments: int, length: float = 2.0, rotations: int = 1, periodicity=None, device='cuda', weight_magnitude: int = 1.0):
+    def __init__(self, n: int, in_channels: int, width: int, height: int, 
+                segments: int, length: float = 2.0, rotations: int = 1, 
+                periodicity=None, device='cuda', weight_magnitude: int = 1.0):
         super().__init__()
 
         self.width = width
         self.height = height
         self.max_dim = max(width, height)
+        self.ratio = self.max_dim/(self.max_dim+1)
         self.rotations = rotations
         self.segments = segments
 
@@ -47,8 +50,8 @@ class StripePolynomial2d(torch.nn.Module):
 
             # Rescale these so they have length segments
             # and are centered at (0,0)
-            r1 = ((r1-r1_min)/dr1-0.5)*self.max_dim
-            r2 = ((r2-r2_min)/dr2-0.5)*self.max_dim
+            r1 = ((r1-r1_min)*self.ratio/dr1-0.5)*self.max_dim
+            r2 = ((r2-r2_min)*self.ratio/dr2-0.5)*self.max_dim
             print('r1_max', dr1, 'r2_max', dr2)
             line_list.append(r1)
             line_list.append(r2)
