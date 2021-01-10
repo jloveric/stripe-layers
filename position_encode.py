@@ -15,5 +15,5 @@ def position_encode(q, coord):
     #print('qout.device', qout.device, 'coord_mod.device', coord_mod.device)
     for i in range(q.shape[1]):
         qout[:, i, :] = 0.5*(1+qout[:, i, :])+coord_mod
-
+    
     return qout.reshape(*q.shape)

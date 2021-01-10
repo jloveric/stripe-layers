@@ -146,7 +146,10 @@ class PiecewiseExpandShared:
 
 
 class PiecewiseShared(nn.Module):
-    def __init__(self, n: int, in_channels: int, segments: int, length: int = 2.0, weight_magnitude=1.0, poly=None, periodicity=None, device='cuda', **kwargs):
+    def __init__(self,
+                 n: int, in_channels: int, segments: int, length: int = 2.0,
+                 weight_magnitude=1.0, poly=None, periodicity=None, device='cuda', **kwargs
+                 ):
         super().__init__()
         self._poly = poly(n)
         self._n = n
@@ -172,7 +175,7 @@ class PiecewiseShared(nn.Module):
         """
         periodicity = self.periodicity
         if periodicity is not None:
-            #x = make_periodic(x, periodicity)
+            x = make_periodic(x, periodicity)
             pass
 
         # get the segment index
@@ -193,17 +196,17 @@ class PiecewiseShared(nn.Module):
         wid_max_flat = wid_max.view(-1)
         wrange = wid_min_flat.unsqueeze(-1) + \
             torch.arange(self._n, device=device).view(-1)
-        #print("wrange.shape",wrange.shape)
+        # print("wrange.shape",wrange.shape)
         # We only choose n interpolation points (weights) so
         # we divide by n instead of (segments*n...) therefore
         # the column index increases
         windex = (torch.arange(
             wrange.shape[0]*wrange.shape[1])//self._n) % (self.in_channels)
         wrange = wrange.flatten()
-        
+
         # [channel index, weight index]
         w = self.w[windex, wrange]
-        
+
         # Now
         #w = w.view(self.out_features, -1, self.in_features, self._n)
         #w = w.permute(1, 2, 0, 3)

@@ -70,8 +70,10 @@ class StripePolynomial2d(torch.nn.Module):
             pos = self.positions[i]
 
             # TODO this should be 0.5*self.max_dim
-            dl = position_encode(x, pos)/(self.max_dim)
+            dl = position_encode(x, pos) /(0.5*self.max_dim)
+            #print('max pos', torch.max(pos))
             #print('max dl',torch.max(dl))
+            #print('dl.shape', dl.shape)
             dl = dl.flatten(start_dim=2)
             dl = self.layer_list[i](dl)
             if i == 0:
