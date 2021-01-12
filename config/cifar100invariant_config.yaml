@@ -1,0 +1,12 @@
+max_epochs: 1
+gpus: 1 
+n: 3
+batch_size: 128
+segments: 10
+layer_type: piecewise 
+train_fraction: 1.0
+rescale_output: False
+linear_output: True
+lr: 0.001
+rotations : 1
+periodicity: null

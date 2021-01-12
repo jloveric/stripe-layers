@@ -9,9 +9,9 @@ class StripePolynomial2d(torch.nn.Module):
     Piecewise continuous polynomial.
     """
 
-    def __init__(self, n: int, in_channels: int, width: int, height: int, 
-                segments: int, length: float = 2.0, rotations: int = 1, 
-                periodicity=None, device='cuda', weight_magnitude: int = 1.0):
+    def __init__(self, n: int, in_channels: int, width: int, height: int,
+                 segments: int, length: float = 2.0, rotations: int = 1,
+                 periodicity=None, device='cuda', weight_magnitude: int = 1.0, layer=PiecewisePolynomialShared):
         super().__init__()
 
         self.width = width
@@ -60,7 +60,7 @@ class StripePolynomial2d(torch.nn.Module):
 
         self.layer_list = []
         for i in range(2*rotations):
-            self.layer_list.append(PiecewisePolynomialShared(
+            self.layer_list.append(layer(
                 n, in_channels=3, segments=segments, length=length, weight_magnitude=1.0, periodicity=periodicity).to(device))
 
     def forward(self, x):
@@ -70,7 +70,7 @@ class StripePolynomial2d(torch.nn.Module):
             pos = self.positions[i]
 
             # TODO this should be 0.5*self.max_dim
-            dl = position_encode(x, pos) /(0.5*self.max_dim)
+            dl = position_encode(x, pos) / (0.5*self.max_dim)
             #print('max pos', torch.max(pos))
             #print('max dl',torch.max(dl))
             #print('dl.shape', dl.shape)
