@@ -60,34 +60,18 @@ class Net(LightningModule):
         segments = cfg.segments
         self._topk_metric = AccuracyTopK(top_k=5)
 
-        self.layer1 = StripePolynomial2d(n, in_channels=3, width=32, height=32,
-                                         segments=segments, length=2.0, weight_magnitude=1.0, periodicity=cfg.periodicity, rotations=cfg.rotations)
-        self.layer2 = StripePolynomial2d(n, in_channels=3, width=16, height=16,
-                                         segments=segments, length=2.0, weight_magnitude=1.0, periodicity=cfg.periodicity, rotations=cfg.rotations)
-        self.layer3 = StripePolynomial2d(n, in_channels=3, width=8, height=8,
-                                         segments=segments, length=2.0, weight_magnitude=1.0, periodicity=cfg.periodicity, rotations=cfg.rotations)
+        self.layer1 = StripeLayer2d(
+            layer_creator=fully_connected_stripe(n=n, in_channels=3, out_features=100, segments=cfg.segments, periodicity=cfg.periodicity),
+            height=32,
+            width=32,
+            rotations=cfg.rotations
+        )
 
-        #self.pool = nn.MaxPool2d(2, 2)
-        self.pool = nn.AvgPool2d(2, 2)
-        self.convolution1 = torch.nn.Conv2d(
-            in_channels=3, out_channels=1, kernel_size=1)
-
-        self.fc1 = nn.Linear(192, 100)
+        self.fc1 = nn.Linear(100, 100)
 
     def forward(self, x):
 
         ans = self.layer1(x)
-        #print('ans1.shape', ans.shape)
-        # do some average pooling
-        ans = self.pool(ans)
-        #print('ansb.shape', ans.shape)
-        ans = self.layer2(ans)
-        #print('ans2.shape', ans.shape)
-        ans = self.pool(ans)
-        ans = self.layer3(ans)
-        #print('ans.shape', ans.shape)
-        ans = ans.flatten(start_dim=1)
-        # print('ans.shape',ans.shape)
         ans = self.fc1(ans)
 
         return ans
