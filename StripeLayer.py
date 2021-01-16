@@ -117,8 +117,8 @@ class StripeLayer2d(torch.nn.Module):
             else:
                 accum = accum + dl
         accum = accum/(len(self.positions))
-
-        return accum.reshape(*x.shape)
+        
+        return accum
 
 
 class StripePolynomial2d(torch.nn.Module):
@@ -198,5 +198,4 @@ class StripePolynomial2d(torch.nn.Module):
             else:
                 accum = accum + dl
         accum = accum/(len(self.positions))
-
         return accum.reshape(*x.shape)

@@ -35,7 +35,9 @@ class BasisShared:
         #print('mat.shape', mat.shape, 'w.shape', w.shape)
         #print('mat.device', mat.device, 'w.device', w.device)
         if self.fc == True:
-            assemble = torch.einsum("ijkl,jlki->jk", mat, w)
+            #print('mat', mat.shape, 'w', w.shape)
+            #[128, 100, 1024, 3, 5]
+            assemble = torch.einsum("ijkl,jmlki->jm", mat, w)
         else:
             assemble = torch.einsum("ijkl,jlki->jkl", mat, w)
 
@@ -214,7 +216,7 @@ class PiecewiseSharedFullyConnected(nn.Module):
         # we divide by n instead of (segments*n...) therefore
         # the column index increases
         windex = (torch.arange(
-            wrange.shape[0]*wrange.shape[1]*wrange.shape[2])//self._n) % self.in_channels
+            wrange.shape[0]*wrange.shape[1])//self._n) % self.in_channels
         wrange = wrange.flatten()
 
         # [channel index, weight index]
@@ -227,7 +229,8 @@ class PiecewiseSharedFullyConnected(nn.Module):
         # TODO: Not totally convinced this is right.  Needs a test
         #w = w.view(-1, wid_min.shape[-1], self.in_channels, self._n)
         #w = w.view(wid_min.shape[-1],-1, self.in_channels, self._n)
-        w = w.view(self.outputs, -1, self.in_channels, self._n)
+        #print('wid_min.shape', wid_min.shape)
+        w = w.view(wid_min.shape[0], self.outputs, -1, self.in_channels, self._n)
         
         #w = w.permute(1, 2, 0, 3)
         #w = w.permute(1, 0, 2, 3)
