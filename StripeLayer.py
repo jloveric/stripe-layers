@@ -5,7 +5,7 @@ from position_encode import *
 from typing import Callable
 
 
-def fully_connected_stripe(n, in_channels, out_features, segments, length=2.0, weight_magnitude=1.0, periodicity: float = None, device='cuda', ** kwargs):
+def fully_connected_stripe(n, in_channels, in_elements, out_features, segments, length=2.0, weight_magnitude=1.0, periodicity: float = None, device='cuda', ** kwargs):
     """
     Number of outputs is out_features and all inputs
     are connected to outputs.  Shared weights are applied
@@ -15,6 +15,7 @@ def fully_connected_stripe(n, in_channels, out_features, segments, length=2.0, w
         return PiecewisePolynomialSharedFullyConnected(
             n=n,
             in_channels=in_channels,
+            in_elements=in_elements,
             out_features=out_features,
             segments=segments,
             length=length,

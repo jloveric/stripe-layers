@@ -61,13 +61,13 @@ class Net(LightningModule):
         self._topk_metric = AccuracyTopK(top_k=5)
 
         self.layer1 = StripeLayer2d(
-            layer_creator=fully_connected_stripe(n=n, in_channels=3, out_features=100, segments=cfg.segments, periodicity=cfg.periodicity),
+            layer_creator=fully_connected_stripe(n=n, in_channels=3, in_elements=1024, out_features=10, segments=cfg.segments, periodicity=cfg.periodicity),
             height=32,
             width=32,
             rotations=cfg.rotations
         )
 
-        self.fc1 = nn.Linear(100, 100)
+        self.fc1 = nn.Linear(10, 100)
 
     def forward(self, x):
 

@@ -157,28 +157,30 @@ class PiecewisePolynomialShared(PiecewiseShared):
                          length, weight_magnitude, poly=LagrangePolyShared, periodicity=periodicity, device=device)
 
 
-
-
 class PiecewiseSharedFullyConnected(nn.Module):
     def __init__(self,
-                 n: int, in_channels: int, out_features : int, segments: int, length: int = 2.0,
+                 n: int, in_channels: int, in_elements, out_features: int, segments: int, length: int = 2.0,
                  weight_magnitude=1.0, poly=None, periodicity=None, device='cuda', **kwargs
                  ):
+        """
+        in_features = in_elements*in_channels
+        """
+
         super().__init__()
         self._poly = poly(n)
         self._n = n
         self._segments = segments
         self.in_channels = in_channels
         self.periodicity = periodicity
-        self.outputs=out_features
+        self.outputs = out_features
         """
         self.w = torch.nn.Parameter(data=torch.Tensor(
             out_features, in_features, ((n-1)*segments+1)), requires_grad=True)
         """
         self.w = torch.nn.Parameter(data=torch.Tensor(
             out_features, in_channels, ((n-1)*segments+1)), requires_grad=True)
-        self.w.data.uniform_(-weight_magnitude,
-                             weight_magnitude)
+        self.w.data.uniform_(-weight_magnitude/in_elements,
+                             weight_magnitude/in_elements)
         self.wrange = None
         self._length = length
         self._half = 0.5*length
@@ -220,7 +222,7 @@ class PiecewiseSharedFullyConnected(nn.Module):
         wrange = wrange.flatten()
 
         # [channel index, weight index]
-        w = self.w[:,windex, wrange]
+        w = self.w[:, windex, wrange]
 
         # Now
         #w = w.view(self.out_features, -1, self.in_features, self._n)
@@ -230,8 +232,9 @@ class PiecewiseSharedFullyConnected(nn.Module):
         #w = w.view(-1, wid_min.shape[-1], self.in_channels, self._n)
         #w = w.view(wid_min.shape[-1],-1, self.in_channels, self._n)
         #print('wid_min.shape', wid_min.shape)
-        w = w.view(wid_min.shape[0], self.outputs, -1, self.in_channels, self._n)
-        
+        w = w.view(wid_min.shape[0], self.outputs, -
+                   1, self.in_channels, self._n)
+
         #w = w.permute(1, 2, 0, 3)
         #w = w.permute(1, 0, 2, 3)
         #print('w_final.shape', w.shape)
@@ -257,7 +260,8 @@ class PiecewiseSharedFullyConnected(nn.Module):
         eta = index/float(self._segments)
         return eta*2-1
 
+
 class PiecewisePolynomialSharedFullyConnected(PiecewiseSharedFullyConnected):
-    def __init__(self, n, in_channels, out_features, segments, length=2.0, weight_magnitude=1.0, periodicity: float = None, device='cuda', ** kwargs):
-        super().__init__(n=n, in_channels=in_channels,out_features=out_features, segments=segments,
+    def __init__(self, n, in_channels, in_elements, out_features, segments, length=2.0, weight_magnitude=1.0, periodicity: float = None, device='cuda', ** kwargs):
+        super().__init__(n=n, in_channels=in_channels, in_elements=in_elements, out_features=out_features, segments=segments,
                          length=length, weight_magnitiude=weight_magnitude, poly=LagrangePolySharedFullyConnected, periodicity=periodicity, device=device)
