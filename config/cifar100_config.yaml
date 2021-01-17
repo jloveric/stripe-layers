@@ -10,3 +10,4 @@ linear_output: True
 lr: 0.001
 rotations : 1
 periodicity: null
+

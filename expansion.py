@@ -37,7 +37,7 @@ class BasisShared:
         if self.fc == True:
             #print('mat', mat.shape, 'w', w.shape)
             #[128, 100, 1024, 3, 5]
-            assemble = torch.einsum("ijkl,jmlki->jm", mat, w)
+            assemble = torch.einsum("ijkl,jmkli->jm", mat, w)
         else:
             assemble = torch.einsum("ijkl,jlki->jkl", mat, w)
 
@@ -173,6 +173,8 @@ class PiecewiseSharedFullyConnected(nn.Module):
         self.in_channels = in_channels
         self.periodicity = periodicity
         self.outputs = out_features
+        self.in_elements = in_elements
+
         """
         self.w = torch.nn.Parameter(data=torch.Tensor(
             out_features, in_features, ((n-1)*segments+1)), requires_grad=True)
@@ -216,13 +218,19 @@ class PiecewiseSharedFullyConnected(nn.Module):
         # print("wrange.shape",wrange.shape)
         # We only choose n interpolation points (weights) so
         # we divide by n instead of (segments*n...) therefore
-        # the column index increases
+        # the column index increases.  This should range from
+        # 0 to channel_index-1...  From fastest to slowest 
+        # varrying should be
+        # [in_channels, n]
         windex = (torch.arange(
             wrange.shape[0]*wrange.shape[1])//self._n) % self.in_channels
+        #print('wid_min.shape', wid_min.shape)
+        #print('wrange.shape', wrange.shape)
         wrange = wrange.flatten()
 
-        # [channel index, weight index]
+        # [output index, channel index, weight index]
         w = self.w[:, windex, wrange]
+        #print('w.shape', w.shape)
 
         # Now
         #w = w.view(self.out_features, -1, self.in_features, self._n)
@@ -232,10 +240,11 @@ class PiecewiseSharedFullyConnected(nn.Module):
         #w = w.view(-1, wid_min.shape[-1], self.in_channels, self._n)
         #w = w.view(wid_min.shape[-1],-1, self.in_channels, self._n)
         #print('wid_min.shape', wid_min.shape)
-        w = w.view(wid_min.shape[0], self.outputs, -
-                   1, self.in_channels, self._n)
 
-        #w = w.permute(1, 2, 0, 3)
+        # [batch, elements, outputs, in_channels, n]
+        w = w.view(self.outputs, wid_min.shape[0], self.in_channels, self.in_elements, self._n)
+        self.w_flat = w
+        w = w.permute(1, 0, 2, 3, 4)
         #w = w.permute(1, 0, 2, 3)
         #print('w_final.shape', w.shape)
 

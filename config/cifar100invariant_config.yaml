@@ -10,3 +10,7 @@ linear_output: True
 lr: 0.001
 rotations : 1
 periodicity: null
+
+# Intermediate output features or the
+# input to the linear layer.
+out_features: 100
