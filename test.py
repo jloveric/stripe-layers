@@ -15,8 +15,6 @@ def test_piecewise_polynomial_shared_fully_connected(n, batches, in_channels, in
     # Only batch 0 has non-zero values
     in_vals[0, 0, :] = torch.arange(0, in_elements)
 
-    segments = 5
-
     layer = PiecewisePolynomialSharedFullyConnected(
         n, in_channels, in_elements,
         out_features, segments, length=2.0,
