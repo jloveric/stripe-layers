@@ -109,11 +109,7 @@ class StripeLayer2d(torch.nn.Module):
 
         super().__init__()
 
-        self.width = width
-        self.height = height
         self.max_dim = max(width, height)
-        self.ratio = self.max_dim/(self.max_dim+1)
-        self.rotations = rotations
 
         self.positions = create_stripe_list(
             width, height, rotations, device=device)
@@ -130,9 +126,6 @@ class StripeLayer2d(torch.nn.Module):
 
             # TODO this should be 0.5*self.max_dim
             dl = position_encode(x, pos) / (0.5*self.max_dim)
-            #print('max pos', torch.max(pos))
-            #print('max dl',torch.max(dl))
-            #print('dl.shape', dl.shape)
             dl = dl.flatten(start_dim=2)
             dl = self.layer_list[i](dl)
             if i == 0:
@@ -143,7 +136,8 @@ class StripeLayer2d(torch.nn.Module):
 
         return accum
 
-
+# TODO : This should be combined with the previous layer so I'm not calling multiple copies
+# of almost identical classes.
 class StripePolynomial2d(torch.nn.Module):
     """
     Piecewise continuous polynomial.
@@ -177,9 +171,7 @@ class StripePolynomial2d(torch.nn.Module):
 
             # TODO this should be 0.5*self.max_dim
             dl = position_encode(x, pos) / (0.5*self.max_dim)
-            #print('max pos', torch.max(pos))
-            #print('max dl',torch.max(dl))
-            #print('dl.shape', dl.shape)
+            
             dl = dl.flatten(start_dim=2)
             dl = self.layer_list[i](dl)
             if i == 0:
