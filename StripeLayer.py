@@ -51,7 +51,9 @@ def create_stripe_list(width: int, height: int, rotations: int = 1, device='cuda
     """
     TODO: move to the base repo.
     Produce a list of 2d "positions" from a mesh grid.  Assign a 1D value to each point
-    in the grid for example x, or y or the diagonal x+y...
+    in the grid for example x, or y or the diagonal x+y... The outputs here can then be
+    used for positional encoding.
+    
     Args :
         width : The width of the array in elements
         height : The height of the array in elements

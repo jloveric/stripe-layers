@@ -32,11 +32,7 @@ class BasisShared:
             mat.append(basis_j)
         mat = torch.stack(mat)
 
-        #print('mat.shape', mat.shape, 'w.shape', w.shape)
-        #print('mat.device', mat.device, 'w.device', w.device)
         if self.fc == True:
-            #print('mat', mat.shape, 'w', w.shape)
-            #[128, 100, 1024, 3, 5]
             assemble = torch.einsum("ijkl,jmkli->jm", mat, w)
         else:
             assemble = torch.einsum("ijkl,jlki->jkl", mat, w)
@@ -107,7 +103,7 @@ class PiecewiseShared(nn.Module):
         wid_max_flat = wid_max.view(-1)
         wrange = wid_min_flat.unsqueeze(-1) + \
             torch.arange(self._n, device=device).view(-1)
-        # print("wrange.shape",wrange.shape)
+
         # We only choose n interpolation points (weights) so
         # we divide by n instead of (segments*n...) therefore
         # the column index increases
@@ -116,28 +112,16 @@ class PiecewiseShared(nn.Module):
         wrange = wrange.flatten()
 
         # [channel index, weight index]
-        w = self.w[windex, wrange]
+        w = self.w[windex, wrange])
 
-        # Now
-        #w = w.view(self.out_features, -1, self.in_features, self._n)
-        #w = w.permute(1, 2, 0, 3)
-
-        # TODO: Not totally convinced this is right.  Needs a test
         w = w.view(-1, wid_min.shape[-1], self.in_channels, self._n)
-        #w = w.view(wid_min.shape[-1],-1, self.in_channels, self._n)
-
-        #w = w.permute(1, 0, 2, 3)
-        #print('w_final.shape', w.shape)
-
+        
         # get the range of x in this segment
         x_min = self._eta(id_min)
         x_max = self._eta(id_max)
 
         # rescale to -1 to +1
         x_in = self._length*((x-x_min)/(x_max-x_min))-self._half
-
-        #print('x_in.shape', x_in.shape)
-        #print('w.shape', w.shape)
 
         result = self._poly.interpolate(x_in, w)
         return result
@@ -215,7 +199,7 @@ class PiecewiseSharedFullyConnected(nn.Module):
         wid_max_flat = wid_max.view(-1)
         wrange = wid_min_flat.unsqueeze(-1) + \
             torch.arange(self._n, device=device).view(-1)
-        # print("wrange.shape",wrange.shape)
+
         # We only choose n interpolation points (weights) so
         # we divide by n instead of (segments*n...) therefore
         # the column index increases.  This should range from
@@ -224,39 +208,23 @@ class PiecewiseSharedFullyConnected(nn.Module):
         # [in_channels, n]
         windex = (torch.arange(
             wrange.shape[0]*wrange.shape[1])//self._n) % self.in_channels
-        #print('wid_min.shape', wid_min.shape)
-        #print('wrange.shape', wrange.shape)
+        
         wrange = wrange.flatten()
 
         # [output index, channel index, weight index]
         w = self.w[:, windex, wrange]
-        #print('w.shape', w.shape)
-
-        # Now
-        #w = w.view(self.out_features, -1, self.in_features, self._n)
-        #w = w.permute(1, 2, 0, 3)
-
-        # TODO: Not totally convinced this is right.  Needs a test
-        #w = w.view(-1, wid_min.shape[-1], self.in_channels, self._n)
-        #w = w.view(wid_min.shape[-1],-1, self.in_channels, self._n)
-        #print('wid_min.shape', wid_min.shape)
 
         # [batch, elements, outputs, in_channels, n]
         w = w.view(self.outputs, wid_min.shape[0], self.in_channels, self.in_elements, self._n)
         self.w_flat = w
         w = w.permute(1, 0, 2, 3, 4)
-        #w = w.permute(1, 0, 2, 3)
-        #print('w_final.shape', w.shape)
-
+        
         # get the range of x in this segment
         x_min = self._eta(id_min)
         x_max = self._eta(id_max)
 
         # rescale to -1 to +1
         x_in = self._length*((x-x_min)/(x_max-x_min))-self._half
-
-        #print('x_in.shape', x_in.shape)
-        #print('w.shape', w.shape)
 
         result = self._poly.interpolate(x_in, w)
         return result
