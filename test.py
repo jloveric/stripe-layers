@@ -40,16 +40,17 @@ def test_piecewise_polynomial_shared_fully_connected(n, batches, in_channels, in
 @pytest.mark.parametrize("n", [2, 7])
 @pytest.mark.parametrize("batches", [4, 11])
 @pytest.mark.parametrize("in_channels", [2, 3])
+@pytest.mark.parametrize("out_channels", [1, 2])
 @pytest.mark.parametrize("in_elements", [4, 6])
 @pytest.mark.parametrize("segments", [2, 5])
-def test_piecewise_polynomial_shared(n, batches, in_channels, in_elements, segments):
+def test_piecewise_polynomial_shared(n, batches, in_channels, out_channels, in_elements, segments):
     in_vals = torch.zeros((batches, in_channels, in_elements))
 
     # Only batch 0 has non-zero values
     rand_in = torch.rand(in_elements)
     in_vals[0, 0, :] = rand_in
 
-    layer = PiecewisePolynomialShared(n, in_channels=in_channels, segments=segments,
+    layer = PiecewisePolynomialShared(n, in_channels=in_channels, out_channels=out_channels, segments=segments,
                                       length=2.0, weight_magnitude=1.0, periodicity=2.0)
 
     # Only channel 0 has non-zero weights
@@ -60,7 +61,7 @@ def test_piecewise_polynomial_shared(n, batches, in_channels, in_elements, segme
     out_vals = layer(in_vals)
 
     print('out_vals.shape', out_vals.shape)
-    assert out_vals.shape == torch.Size([batches, in_channels, in_elements])
+    assert out_vals.shape == torch.Size([batches, out_channels, in_elements])
 
     # The remaining outputs should be identical because the
     # batches are identical.

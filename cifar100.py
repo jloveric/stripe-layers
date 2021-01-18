@@ -60,11 +60,11 @@ class Net(LightningModule):
         segments = cfg.segments
         self._topk_metric = AccuracyTopK(top_k=5)
 
-        self.layer1 = StripePolynomial2d(n, in_channels=3, width=32, height=32,
+        self.layer1 = StripePolynomial2d(n, in_channels=3, out_channels=3, width=32, height=32,
                                          segments=segments, length=2.0, weight_magnitude=1.0, periodicity=cfg.periodicity, rotations=cfg.rotations)
-        self.layer2 = StripePolynomial2d(n, in_channels=3, width=16, height=16,
+        self.layer2 = StripePolynomial2d(n, in_channels=3, out_channels=3, width=16, height=16,
                                          segments=segments, length=2.0, weight_magnitude=1.0, periodicity=cfg.periodicity, rotations=cfg.rotations)
-        self.layer3 = StripePolynomial2d(n, in_channels=3, width=8, height=8,
+        self.layer3 = StripePolynomial2d(n, in_channels=3, out_channels=3, width=8, height=8,
                                          segments=segments, length=2.0, weight_magnitude=1.0, periodicity=cfg.periodicity, rotations=cfg.rotations)
 
         #self.pool = nn.MaxPool2d(2, 2)

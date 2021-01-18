@@ -53,7 +53,7 @@ def create_stripe_list(width: int, height: int, rotations: int = 1, device='cuda
     Produce a list of 2d "positions" from a mesh grid.  Assign a 1D value to each point
     in the grid for example x, or y or the diagonal x+y... The outputs here can then be
     used for positional encoding.
-    
+
     Args :
         width : The width of the array in elements
         height : The height of the array in elements
@@ -139,7 +139,7 @@ class StripeLayer2d(torch.nn.Module):
                 accum = dl
             else:
                 accum = accum + dl
-        accum = accum/(len(self.positions))
+        #accum = accum/(len(self.positions))
 
         return accum
 
@@ -149,7 +149,7 @@ class StripePolynomial2d(torch.nn.Module):
     Piecewise continuous polynomial.
     """
 
-    def __init__(self, n: int, in_channels: int, width: int, height: int,
+    def __init__(self, n: int, in_channels: int, out_channels: int, width: int, height: int,
                  segments: int, length: float = 2.0, rotations: int = 1,
                  periodicity=None, device='cuda', weight_magnitude: int = 1.0, layer=PiecewisePolynomialShared):
         super().__init__()
@@ -167,7 +167,7 @@ class StripePolynomial2d(torch.nn.Module):
         self.layer_list = []
         for i in range(2*rotations):
             self.layer_list.append(layer(
-                n, in_channels=in_channels, segments=segments, length=length, weight_magnitude=weight_magnitude, periodicity=periodicity).to(device))
+                n, in_channels=in_channels, out_channels=out_channels, segments=segments, length=length, weight_magnitude=weight_magnitude, periodicity=periodicity).to(device))
 
     def forward(self, x):
 
