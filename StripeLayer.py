@@ -47,6 +47,60 @@ def stripe_expansion(n, in_channels, segments, length=2.0, weight_magnitude=1.0,
     return create
 
 
+def create_stripe_list(width: int, height: int, rotations: int = 1, device='cuda'):
+    """
+    TODO: move to the base repo.
+    Produce a list of 2d "positions" from a mesh grid.  Assign a 1D value to each point
+    in the grid for example x, or y or the diagonal x+y...
+    Args :
+        width : The width of the array in elements
+        height : The height of the array in elements
+        rotations : The number of rotations to return.
+            1 returns standard x, y (2 coordinate axis)
+            2 returns x, y, x+y, x-y (4 coordiante axis)
+            3 returns 6 coordinate axes (3 axes and the axis orthogonal to each)
+    Returns :
+        A list of meshes and the rotated axis
+    """
+    max_dim = max(width, height)
+    ratio = max_dim/(max_dim+1)
+
+    # Create and center the coordinates
+    # TODO: These don't have the ranges I thought so they will need to be fixed.
+    xv, yv = torch.meshgrid(
+        [torch.arange(width), torch.arange(height)])
+    xv = xv.to(device=device)
+    yv = yv.to(device=device)
+
+    # Coordinate values range from
+    line_list = []
+    for i in range(rotations):
+        theta = (math.pi/2.0)*(i/rotations)
+        rot_x = math.cos(theta)
+        rot_y = math.sin(theta)
+
+        # Add the line and the line orthogonal
+        r1 = (rot_x*xv+rot_y*yv)
+        r1_max = torch.max(r1)
+        r1_min = torch.min(r1)
+        dr1 = r1_max-r1_min
+
+        r2 = (rot_x*xv-rot_y*yv)
+        r2_max = torch.max(r2)
+        r2_min = torch.min(r2)
+        dr2 = r2_max-r2_min
+
+        # Rescale these so they have length segments
+        # and are centered at (0,0)
+        r1 = ((r1-r1_min)*ratio/dr1-0.5)*max_dim
+        r2 = ((r2-r2_min)*ratio/dr2-0.5)*max_dim
+
+        line_list.append(r1)
+        line_list.append(r2)
+
+    return line_list
+
+
 class StripeLayer2d(torch.nn.Module):
 
     def __init__(self, layer_creator: Callable[[], torch.nn.Module], width: int, height: int, rotations: int = 1, device='cuda'):
@@ -59,42 +113,8 @@ class StripeLayer2d(torch.nn.Module):
         self.ratio = self.max_dim/(self.max_dim+1)
         self.rotations = rotations
 
-        # Create and center the coordinates
-        # TODO: These don't have the ranges I thought so they will need to be fixed.
-        xv, yv = torch.meshgrid(
-            [torch.arange(width), torch.arange(height)])
-        xv = xv.to(device=device)
-        yv = yv.to(device=device)
-        #print('yv.device', yv.device)
-
-        # Coordinate values range from
-        line_list = []
-        for i in range(rotations):
-            theta = (math.pi/2.0)*(i/rotations)
-            rot_x = math.cos(theta)
-            rot_y = math.sin(theta)
-            rot_sum = math.fabs(rot_x)+math.fabs(rot_y)
-
-            # Add the line and the line orthogonal
-            r1 = (rot_x*xv+rot_y*yv)
-            r1_max = torch.max(r1)
-            r1_min = torch.min(r1)
-            dr1 = r1_max-r1_min
-
-            r2 = (rot_x*xv-rot_y*yv)
-            r2_max = torch.max(r2)
-            r2_min = torch.min(r2)
-            dr2 = r2_max-r2_min
-
-            # Rescale these so they have length segments
-            # and are centered at (0,0)
-            r1 = ((r1-r1_min)*self.ratio/dr1-0.5)*self.max_dim
-            r2 = ((r2-r2_min)*self.ratio/dr2-0.5)*self.max_dim
-            print('r1_max', dr1, 'r2_max', dr2)
-            line_list.append(r1)
-            line_list.append(r2)
-
-        self.positions = line_list
+        self.positions = create_stripe_list(
+            width, height, rotations, device=device)
 
         self.layer_list = []
         for i in range(2*rotations):
@@ -118,7 +138,7 @@ class StripeLayer2d(torch.nn.Module):
             else:
                 accum = accum + dl
         accum = accum/(len(self.positions))
-        
+
         return accum
 
 
@@ -139,42 +159,8 @@ class StripePolynomial2d(torch.nn.Module):
         self.rotations = rotations
         self.segments = segments
 
-        # Create and center the coordinates
-        # TODO: These don't have the ranges I thought so they will need to be fixed.
-        xv, yv = torch.meshgrid(
-            [torch.arange(width), torch.arange(height)])
-        xv = xv.to(device=device)
-        yv = yv.to(device=device)
-        #print('yv.device', yv.device)
-
-        # Coordinate values range from
-        line_list = []
-        for i in range(rotations):
-            theta = (math.pi/2.0)*(i/rotations)
-            rot_x = math.cos(theta)
-            rot_y = math.sin(theta)
-            rot_sum = math.fabs(rot_x)+math.fabs(rot_y)
-
-            # Add the line and the line orthogonal
-            r1 = (rot_x*xv+rot_y*yv)
-            r1_max = torch.max(r1)
-            r1_min = torch.min(r1)
-            dr1 = r1_max-r1_min
-
-            r2 = (rot_x*xv-rot_y*yv)
-            r2_max = torch.max(r2)
-            r2_min = torch.min(r2)
-            dr2 = r2_max-r2_min
-
-            # Rescale these so they have length segments
-            # and are centered at (0,0)
-            r1 = ((r1-r1_min)*self.ratio/dr1-0.5)*self.max_dim
-            r2 = ((r2-r2_min)*self.ratio/dr2-0.5)*self.max_dim
-            print('r1_max', dr1, 'r2_max', dr2)
-            line_list.append(r1)
-            line_list.append(r2)
-
-        self.positions = line_list
+        self.positions = create_stripe_list(
+            width, height, rotations, device=device)
 
         self.layer_list = []
         for i in range(2*rotations):
