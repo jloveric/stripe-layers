@@ -1,4 +1,4 @@
-# high-order-image-classification
+# classification with stripe layers
 A high order approach to image classification.  Uses the "stripe" layers for "convolutional" and
 fully connected layers.  However, neither of these are the same as the standard version.  Instead
 of convolutional blocks, stripes across the entire domain are used along with a positional encoding.
