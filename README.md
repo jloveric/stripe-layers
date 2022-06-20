@@ -1,3 +1,4 @@
+[![CI](https://github.com/jloveric/stripe-layer-classification/actions/workflows/python-app.yml/badge.svg)](https://github.com/jloveric/stripe-layer-classification/actions/workflows/python-app.yml)
 # classification with stripe layers
 Currently an experiment.  Will be moved to high-order-layers-torch when I determine this is valuable.
 
