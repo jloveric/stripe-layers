@@ -9,14 +9,14 @@ import torch.nn.functional as F
 import torch.optim as optim
 from pytorch_lightning import LightningModule, Trainer
 from high_order_layers_torch.layers import *
-from pytorch_lightning.metrics.functional import accuracy
+from torchmetrics.functional import accuracy
 import hydra
 from omegaconf import DictConfig, OmegaConf
 import os
-from pytorch_lightning.metrics import Metric
-from position_encode import *
-from expansion import *
-from StripeLayer import *
+from torchmetrics import Metric
+from stripe_layers.position_encode import *
+from stripe_layers.expansion import *
+from stripe_layers.StripeLayer import *
 
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]

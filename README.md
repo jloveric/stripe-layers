@@ -7,6 +7,11 @@ of convolutional blocks, stripes across the entire domain are used along with a 
 The "fully connected" layer still shares weights along each stripe, but the output of that layer takes
 the inputs from all of the stripes (and their rotations).
 
+Basically, since each unit in the piecewise polynomial layers is split into a bunch of segments you can
+add a position (x) to a color (c) to locate x, c as a single value in one of the segments (or bins) of the
+the unit.  It's basically a positional encoding, but one that I hypothesize should work really well with
+piecewise polynomial layers.
+
 ##
 Convolutional like
 ```
