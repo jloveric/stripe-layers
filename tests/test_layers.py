@@ -35,7 +35,8 @@ def test_piecewise_polynomial_shared_fully_connected(
     # Only channel 0 has non-zero weights
     # so the resulting outputs in batch 1:
     # should all be the same
-    layer.w[:, 1:, :] = 0.0
+    with torch.no_grad():
+        layer.w[:, 1:, :] = 0.0
 
     out_vals = layer(in_vals)
 
@@ -75,7 +76,8 @@ def test_piecewise_polynomial_shared(
     # Only channel 0 has non-zero weights
     # so the resulting outputs in batch 1:
     # should all be the same
-    layer.w[1:, :] = 0.0
+    with torch.no_grad():
+        layer.w[1:, :] = 0.0
 
     out_vals = layer(in_vals)
 

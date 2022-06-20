@@ -1,7 +1,7 @@
 import torch
 from expansion import *
 import math
-from position_encode import *
+from stripe_layers.position_encode import *
 from typing import Callable
 
 
